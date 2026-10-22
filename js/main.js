@@ -50,3 +50,19 @@
     });
   }
 })();
+
+// Video de portada: se carga desde texto base64 (media/*.b64.txt)
+(function(){
+  var v=document.querySelector('video'); if(!v) return;
+  function b64blob(t,type){var s=atob(t.trim()),a=new Uint8Array(s.length);for(var i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return URL.createObjectURL(new Blob([a],{type:type}));}
+  fetch('media/poster.b64.txt').then(function(r){return r.ok?r.text():null}).then(function(t){if(t)v.poster=b64blob(t,'image/jpeg');}).catch(function(){});
+  var cargado=false;
+  function cargar(){ if(cargado) return; cargado=true;
+    fetch('media/video.b64.txt').then(function(r){return r.text()}).then(function(t){
+      var s=v.querySelector('source'); var u=b64blob(t,'video/mp4');
+      if(s){s.src=u;} else {v.src=u;} v.load(); v.play().catch(function(){});
+    }).catch(function(){cargado=false;});
+  }
+  v.addEventListener('play',cargar,{once:true}); v.addEventListener('click',cargar,{once:true});
+  if('IntersectionObserver' in window){new IntersectionObserver(function(e,o){if(e[0].isIntersecting){cargar();o.disconnect();}}).observe(v);}
+})();
